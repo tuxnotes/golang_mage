@@ -321,8 +321,123 @@ func main() {
 如果通过索引(切片)的方式定位字符串的内容，则字符串定义内容只能位ASCII，否则会出现乱码
 获取字符串的长度，使用len函数，但字符串内容必须只能是ASCII码。因为Unicode在存储的时候一个字符是多个字节
 ### 2.5.4 枚举类型
-
+const + iota实现
 ### 2.5.5 指针类型
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	a := 2
+
+	var p *int = &a
+	*p = 3
+	fmt.Printf("%T %p %d\n", p, p, a)
+}
+```
+获取用户输入数据:使用fmt.Scan(),接受指针,不带缓冲的IO
+```go
+package main
+
+import "fmt"
+
+func main() {
+	var name string
+	fmt.Println("请输入名字：")
+	fmt.Scan(&name) // scan receive pointer
+	fmt.Printf("你的名字是: %s\n", name)
+}
+```
+## 2.6 流程控制
+
+### 2.6.1 条件选择
+#### if else
+
+#### switch
+switch不需要操作数，它仅仅是列出case，每个case是一个布尔表达式
+```go
+package main
+
+import "fmt"
+
+func conflip() string {
+	return "heads"
+}
+
+func Signum(x int) int {
+	switch { // tagless switch, which is equivalent to switch true
+	case x > 0:
+		return +1
+	case x < 0:
+		return -1
+	default:
+		return 0
+	}
+}
+
+func main() {
+	var heads, tails int
+	switch conflip() {
+	case "heads":
+		heads++
+	case "tails":
+		tails++
+	default:
+		fmt.Println("landed on edge!")
+	}
+}
+```
+
+### 2.6.2 循环
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
+
+func main() {
+	counts := make(map[string]int)
+	input := bufio.NewScanner(os.Stdin)
+	for input.Scan() {
+		/*
+			每次调用input.Scan(),就会读取下一行，并将行尾的换行符去除，使用input.Text()获取内容.
+			如果没有可读取的行了，则Scan()函数返回false
+		*/
+		counts[input.Text()]++
+	}
+
+	for line, n := range counts {
+		if n > 1 {
+			fmt.Printf("Dup line: %s count: %d\n", line, n)
+		}
+	}
+}
+```
+### 作业
+
+乘法表
+```go
+package main
+
+import "fmt"
+
+func main() {
+	for i := 1; i < 10; i++ {
+		for j := 1; j <= i; j++ {
+			fmt.Printf("%d X %d ", j, i)
+		}
+		fmt.Println()
+	}
+}
+```
+
+
+
 
 
 
