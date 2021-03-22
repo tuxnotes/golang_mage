@@ -435,6 +435,159 @@ func main() {
 	}
 }
 ```
+## 2.7 复合数据类型
+复合数据类型可以理解为可以存储多个单值，类似于集合
+### 2.7.1 数组
+固定长度，元素类型相同，数组长度也是类型的一部分，长度是一个常亮，如字面量。声明数组的时候必须有数组长度和元素类型。
+```go
+package main
+
+import "fmt"
+
+func main() {
+	var numbers [10]int
+	fmt.Printf("%T\n", numbers)
+	fmt.Println(numbers)
+	var s1 [3]string
+	fmt.Printf("%q\n", s1)
+}
+```
+#### 赋值
+字面量的方式赋值
+```go
+var nums [10]int{10, 20, 30}
+```
+索引的方式
+```go
+var nums [10]int{0:10, 9:30}
+```
+数组长度根据数组长度进行推导
+```go
+[...]int{1,2,3} // 数组长度为3
+```
+#### 获取数组长度
+```go
+fmt.Println(len(numbers))
+```
+#### 数组索引
+索引范围0-(len(array)-1)
+numbers[0] = 1000
+
+使用短声明给多个变量赋值时，:=左侧至少有一个新的变量
+```go
+var value int
+_, value, xx := 1,2,3 // xx为新的变量
+fmt.Println(value,xx)
+```
+### 2.7.2 切片
+切片是长度可变的数组(由数据类型相同的元素组成的一组长度可变的序列)，由三部分组成：
+- 指针：指向通过切片可访问到的底层数组的第一个元素，不必须是低等数组的第一个元素
+- 长度：切片元素的数量，不能超过容量
+- 容量：切片开始到底层数组结束位置元素的数量
+数组切片操作后得到的类型是slice.slice有长度和容量的属性。
+
+#### 声明
+切片的声明需要指定元素的类型，但不需要指定存储元素的数量。切片声明后，会被初始化为nil，表示暂不存在的切片
+```go
+var nums []int
+numbers := make([]int, 3)
+```
+#### 切片操作
+切片操作的写法为s[i:j]，其中0 ≤ i ≤ j ≤ cap(s)。此操作会生成一个包含i到j-1的新切片。其中s可以是数组变量，指向数组的指针，或者是其他的切片。
+切片操作超出容量将会导致panic，但是可以超过length。
+因为切片包含指针，因此将切片传给函数，则允许函数修改底层数组。
+与数组不同的是，切片不支持比较。标准库提供了byte.Equal函数，用于比较byte类型的切片，但是其他的类型就得自己实现了。
+#### 切片的零值
+切片类型的零值是nil,零值的切片表示没有底层数组。nil slice 的length和capacity均为0.但也有length和capacity为0，单slice不为slice的情况：
+```go
+var s []int    // len(s) == 0, s == nil
+s = nil        // len(s) == 0, s == nil
+s = []int(nil) // len(s) == 0, s == nil
+s = []int{}    // len(s) == 0, s != nil
+```
+因此要测试slice是否为空，使用len(s) == 0，而不是s == nil
+#### 删除元素
+使用切片操作
+1. 从切片中间位置移除元素，需要保留切片顺序可以使用copy
+
+```go
+func remove(slice []int, i int) []int{
+	copy(slice[:i],slice[i+1:])
+	return slice[:len(slice)-1]
+}
+```
+2. 如果不需要保留顺序，则直接将最后一个元素赋值给要移除的元素的位置
+
+```go
+func remove(slice []int, i int) []int{
+	slice[i] = slice[len(slice)-1]
+	return slice[:len(slice)-1]
+}
+```
+
+#### copy append
+
+### 2.7.3 多维切片
+元素也是切片
+
+## 2.8 map映射
+映射是存储一系列无序的key/value对，通过key来对value进行增删改查
+key/value规则：
+map的key只能是可以使用==运算的类型，如字符串，数字，布尔，数组；value可以是任意类型
+### 2.8.1 操作
+增删改查
+如果查找的key在map中不存在，则返回value类型的零值。**但是map的元素不是变量，不能进行取地址操作**。原因之一是map的增长将导致元素重新hash到新的存储位置。
+删除：delete内置函数
+### 2.8.2 map的零值
+map的零值为nil，意味着还没有指向任何的hash表
+```go
+	var ages map[string]int
+	fmt.Println(ages == nil)  // true
+	fmt.Println(len(ages) == 0) // true
+	ages["carol"] = 21 // panic: assignment to entry in nil map
+```
+对nil map 的大多数操作如lookup,delete,range,len都是安全的，其行为如同空map，但是往nil的map存储值将引发panic。因此存储前首先需要分配map。
+```go
+if age, ok := ages["Bob"]; !ok { /*...*/ }
+```
+### 2.8.3 比较
+与slice一样，map不支持比较，唯一可以比较的对象是nil。如果想比较则要手动实现：
+```go
+func equal(x, y map[string]int) bool {
+	if len(x) != len(y) {
+		return false
+	}
+	for k, xv := range x {
+		if yv, ok := y[k]; !ok || y[k] != x[k] {
+			return false
+		}
+	}
+	return true
+}
+```
+### 2.8.4 基于map实现集合
+golang没有提供set类型，但是map的key是不同的，基于map可以实现set，map的value为bool类型。
+去重示例：
+```go
+func main() {
+	seen := make(map[string]bool)
+	input := bufio.NewScanner(os.Stdin)
+	for input.Scan() {
+		line := input.Text()
+		if !seen[line] {
+			seen[line] = true
+			fmt.Println(line)
+		}
+	}
+	if err := input.Err(); err != nil {
+		fmt.Fprintf(os.Stderr, "dedup: %v\n", err)
+		os.Exit(1)
+	}
+}
+```
+
+
+
 
 
 
