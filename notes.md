@@ -585,7 +585,74 @@ func main() {
 	}
 }
 ```
+## 2.9 字符串/字节切片
+**区别**
+- Bytes:将buffer对象转换为字节切片
+- String：将buffer对象转换为字符串
 
+**转换**
+可以将string通过函数byte[]转化为字节切片，同时也可以通过string函数将字节切片转化为字符串
+### 2.9.1 字符串常用函数
+字符串常用函数由strings模块提供，提供了操作UTF-8字符串的常用函数
+#### 常用函数
+- Compare:比较字符串
+- Contains:是否包含子字符串
+- Count:子字符串出现次数
+- EuqalFold:不区分大小写对比
+- Fields:按空白字符分割字符串,空格，\n , \f,\v,\r
+- HasPrefix:字符串是否以某个字符串开头
+- HasSuffix:字符串是否以某个字符串结尾
+- Index:获取子字符串首次出现的位置
+- Split:指定字符串对字符串进行分割
+- Join:将字符串切片连接为字符串
+- LastIndex:
+
+### 2.9.2 字节切片
+
+定义
+```
+var b []byte = []byte{'a','b','c'}
+```
+字节切片转化为字符串
+```
+s := string(b)
+```
+字符串转化为字节切片
+```
+bs := []byte(s)
+```
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	var b []byte = []byte{'a', 'b', 'c'}
+	fmt.Printf("%T %v\n", b, b)
+	s := string(b)
+	fmt.Printf("%T %v\n", s, s)
+	bs := []byte(s)
+	fmt.Printf("%T %v\n", bs, bs)
+}
+```
+### 2.9.3 其他常用包
+unicode/utf8, strconv
+```go
+package main
+
+import (
+	"fmt"
+	"unicode/utf8"
+)
+
+func main() {
+	s := "我爱中华人民共和国"
+	fmt.Println(len(s))
+	fmt.Println(utf8.RuneCountInString(s))
+}
+```
+# 3 函数
 
 
 
