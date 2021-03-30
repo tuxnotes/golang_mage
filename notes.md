@@ -652,7 +652,103 @@ func main() {
 	fmt.Println(utf8.RuneCountInString(s))
 }
 ```
-# 3 函数
+# 3 函数及错误处理
+为什么需要函数？
+- 函数可以将多个语句封装为一个整体，从而可以在程序的其他位置调用
+- 函数可以将一个大任务分解为多个独立的小任务，从而便于不同的人开发
+- 另外函数对使用者隐藏了实现细节
+
+## 3.1 函数声明
+函数的声明需要以下几个部分：
+- 函数名称
+- 参数列表，指定参数的名称和类型
+- 返回值列表，可选
+- 函数体
+
+```go
+func name(parameter-list) (result-list) {
+body
+}
+```
+示例如下
+```go
+func hypot(x, y float64) float64 {
+	return math.Sqrt(x*x + y*y)
+}
+fmt.Println(hypot(3, 4)) // "5"
+```
+上面的示例中，x和y是函数声明中的形参(parameter)；3和4是函数调用时的实参(arguments).
+下面是声明接受两个参数以及一个返回值的函数的四种方式：
+```go
+func add(x int, y int) int   { return x + y }
+func sub(x, y int) (z int)   { z = x - y; return }
+func first(x int, _ int) int { return x }
+func zero(int, int) int      { return 0 }
+fmt.Printf("%T\n", add)   // "func(int, int) int"
+fmt.Printf("%T\n", sub)   // "func(int, int) int"
+fmt.Printf("%T\n", first) // "func(int, int) int"
+fmt.Printf("%T\n", zero)  // "func(int, int) int"
+```
+参数列表中的空白标识符_用于强调此参数没有使用。
+函数类型也称为函数签名，如果两个函数类型或签名相同则：
+- 两个函数的参数列表中参数类型顺序相同
+- 两个函数的返回值列表中类型顺序相同
+
+函数调用必须按函数声明参数列表的顺序为每个形参提供一个实参。Go语音没有形参默认值的概念，也没有通过名称指定实参的方法，因此返回值和形参名称不影响调用，除了文档。
+
+形参是函数体内的局部变量，提供函数调用者提供的实参进行值的初始化。实参是以传递值的形式进行的，因此函数调用接受的是实参的副本。对副本的修改并不影响函数调用者。但如果实参是引用类型如，指针，切片，map，function，channel，则对副本的修改会间接影响函数调用者。
+
+你偶尔也会遇到不带函数体的函数声明，这表明函数是用除Go之外的其他语音实现的。这种声明只定义函数的签名。如
+```go
+package math
+func Sin(x float64) float64 // implemented in assembly language
+```
+## 3.2 递归
+函数可以递归调用，即调用自己。递归是一种强大的技术，主要用于处理具有递归特性的数据结构。
+下面的示例中使用了非标准包golang.org/x/net/html，其提供了HTML的解析器。golang.org/x/仓库是由Go team设计和维护的包，用于网络，国际化文本处理，移动平台，图像控制，加密，开发工具等应用。这些包处于
+## 3.3 可变参数
+variadic function可变参数函数是其被调用时，实参的个数是变化的，不固定。
+可变参数函数的声明方式是在最后一个形参的类型前加上三个...
+如
+```go
+func sum(vals ...int) int {
+	total := 0
+	for _, val := range vals {
+		total += val
+	}
+	return total
+}
+```
+函数体中的vals是[]int slice类型。当sum函数被调用的时候，可以提供vals任何数量的值，如
+```go
+fmt.Println(sum())
+fmt.Println(sum(3))
+fmt.Println(sum(1,2,3,4))
+```
+这里隐含的是：调用者分配一个数组，将实参复制到数组中，然后将整个数组的切片传递给函数。但如果实参已经是切片类型，那如何将其传递给可变参数函数呢？其实就是在实参后面加上...
+如
+```go
+values := []int{1,2,3,4}
+fmt.Println(sum(values...)) // 10
+```
+尽管...int形参与切片形参表现的行为相同，但variadic function与以slice作为形参的普通函数的类型是不同的：
+```go
+func f(...int) {}
+func g([]int)  {}
+fmt.Printf("%T\n", f) // "func(...int)"
+fmt.Printf("%T\n", g) // "func([]int)"
+```
+variadic function经常用于字符串的格式化。如下面的errorf函数用于构造错误信息：在错误消息前加上行号。errorf函数名中的后缀f表明此函数接受Printf格式的字符串：
+```go
+func errorf(linenum int, format string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, "Line %d: ", linenum)
+	fmt.Fprintf(os.Stderr, format, args...)
+	fmt.Fprintln(os.Stderr)
+}
+linenum, name := 12, "count"
+errorf(linenum, "undefined: %s", name) // "Line 12: undefined: count"
+```
+interface{}类型意味着可以接受任何值。
 
 
 
